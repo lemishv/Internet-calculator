@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a">
+<title>Internet — Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0a;
+  --surface: #151515;
+  --surface-2: #1f1f1f;
+  --text: #e8e8e8;
+  --text-dim: #888;
+  --text-faint: #555;
+  --accent: #d4a574;
+  --accent-dim: #8a6d4a;
+  --border: #2a2a2a;
+  --border-strong: #3a3a3a;
+  --ok: #7ab87a;
+  --warn: #d4a574;
+  --bad: #c97070;
+}
+
+[data-theme="light"] {
+  --bg: #f5f3ec;
+  --surface: #ffffff;
+  --surface-2: #efece3;
+  --text: #1a1a1a;
+  --text-dim: #6a6a6a;
+  --text-faint: #9a9a9a;
+  --accent: #a07239;
+  --accent-dim: #c4a075;
+  --border: #d8d4c8;
+  --border-strong: #b8b3a4;
+  --ok: #4a8a4a;
+  --warn: #a07239;
+  --bad: #a04848;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100vh;
+  overscroll-behavior: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+body {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.serif { font-family: 'Fraunces', serif; font-feature-settings: "ss01"; }
+.num   { font-family: 'Fraunces', serif; font-feature-settings: "tnum","ss01"; font-variant-numeric: tabular-nums; }
+.mono  { font-family: 'JetBrains Mono', monospace; }
+
+/* ------------------ Header ------------------ */
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 18px 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+
+.title {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  color: var(--accent);
+}
+
+.title small {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-faint);
+  letter-spacing: 0.05em;
+  margin-left: 6px;
+  text-transform: uppercase;
+}
+
+.theme-toggle {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-dim);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.theme-toggle:hover { color: var(--accent); border-color: var(--accent-dim); }
+.theme-toggle:active { transform: scale(0.95); }
+
+/* ------------------ Sections ------------------ */
+
+section {
+  padding: 18px;
+  margin-bottom: 4px;
+}
+
+.section-label {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+}
+.section-label::before {
+  content: "";
+  display: block;
+  width: 18px;
+  height: 1px;
+  background: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.clear-btn {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-faint);
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.clear-btn:active { transform: scale(0.95); }
+.clear-btn.armed {
+  color: var(--bad);
+  border-color: var(--bad);
+}
+
+/* ------------------ Scenario row ------------------ */
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.row:last-child { border-bottom: none; }
+
+.row-info { flex: 1; min-width: 0; }
+.row-name {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 16px;
+  color: var(--text);
+  letter-spacing: -0.005em;
+}
+.row-meta {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 2px;
+  letter-spacing: 0.02em;
+}
+
+.counter {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 2px;
+}
+.counter button {
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-family: 'Fraunces', serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s;
+}
+.counter button:active { background: var(--border); transform: scale(0.92); }
+.counter button:disabled { color: var(--text-faint); opacity: 0.4; }
+.counter .val {
+  min-width: 28px;
+  text-align: center;
+  font-family: 'Fraunces', serif;
+  font-feature-settings: "tnum";
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text);
+}
+.counter .val.zero { color: var(--text-faint); }
+
+/* Toggle for boolean scenarios */
+.toggle {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  background: var(--surface-2);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.toggle::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  background: var(--text-faint);
+  border-radius: 50%;
+  transition: transform 0.2s, background 0.2s;
+}
+.toggle.on { background: var(--accent-dim); }
+.toggle.on::after { transform: translateX(20px); background: var(--accent); }
+
+/* ------------------ Plan inputs ------------------ */
+
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.field:last-child { border-bottom: none; }
+
+.field-label { flex: 1; min-width: 0; }
+.field-label-name {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 16px;
+  letter-spacing: -0.005em;
+}
+.field-label-hint {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 2px;
+}
+
+.field-input {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 8px 12px;
+  min-width: 110px;
+  justify-content: flex-end;
+}
+.field-input input {
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-family: 'Fraunces', serif;
+  font-feature-settings: "tnum";
+  font-size: 18px;
+  font-weight: 500;
+  width: 64px;
+  text-align: right;
+  outline: none;
+  padding: 0;
+  -moz-appearance: textfield;
+}
+.field-input input::-webkit-outer-spin-button,
+.field-input input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.field-input input:focus { color: var(--accent); }
+.field-input .unit {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 0.03em;
+}
+
+select.conn {
+  background: var(--surface-2);
+  border: none;
+  color: var(--accent);
+  font-family: 'Fraunces', serif;
+  font-size: 16px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  outline: none;
+  cursor: pointer;
+  min-width: 130px;
+}
+
+/* ------------------ Requirements block ------------------ */
+
+.requirements {
+  margin: 0 18px 4px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  padding: 16px 18px 18px;
+}
+
+.req-label {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.req-label::before {
+  content: "";
+  display: block;
+  width: 18px;
+  height: 1px;
+  background: var(--text-faint);
+}
+
+.req-empty {
+  font-size: 13px;
+  color: var(--text-faint);
+  text-align: center;
+  padding: 8px 0 4px;
+  letter-spacing: 0.02em;
+}
+
+.req-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.req-card {
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 12px 10px 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.req-card-val {
+  font-family: 'Fraunces', serif;
+  font-feature-settings: "tnum", "ss01";
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+}
+
+.req-card-unit {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+.req-card-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+  margin-top: 6px;
+  text-transform: uppercase;
+}
+
+/* ------------------ Verdict ------------------ */
+
+.verdict {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  margin: 8px 18px 24px;
+}
+
+.verdict-headline {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+.verdict-headline.ok   { color: var(--ok); }
+.verdict-headline.warn { color: var(--warn); }
+.verdict-headline.bad  { color: var(--bad); }
+
+.verdict-sub {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+
+.metric {
+  display: grid;
+  grid-template-columns: 90px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.metric:last-child { border-bottom: none; }
+
+.metric-name {
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.metric-bar {
+  position: relative;
+  height: 6px;
+  background: var(--surface-2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.metric-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--w, 0%);
+  background: var(--c, var(--accent));
+  border-radius: 3px;
+  transition: width 0.3s, background 0.3s;
+}
+
+.metric-vals {
+  font-family: 'Fraunces', serif;
+  font-feature-settings: "tnum";
+  font-size: 14px;
+  white-space: nowrap;
+}
+.metric-vals .have { color: var(--text); font-weight: 500; }
+.metric-vals .need { color: var(--text-faint); font-size: 11px; margin-left: 4px; }
+.metric-vals .have.ok   { color: var(--ok); }
+.metric-vals .have.warn { color: var(--warn); }
+.metric-vals .have.bad  { color: var(--bad); }
+
+.price-block {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.price-block-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
+.price-block-val {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.price-block-num {
+  font-family: 'Fraunces', serif;
+  font-feature-settings: "tnum", "ss01";
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+}
+
+.price-block-unit {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 0.04em;
+}
+
+.notes {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+.notes p { margin: 0 0 6px; }
+.notes p:last-child { margin-bottom: 0; }
+.notes .tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-right: 6px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: var(--surface-2);
+}
+.notes .tag.ok   { color: var(--ok); }
+.notes .tag.warn { color: var(--warn); }
+.notes .tag.bad  { color: var(--bad); }
+
+/* ------------------ Footer ------------------ */
+
+footer {
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-faint);
+  padding: 8px 18px 24px;
+  letter-spacing: 0.08em;
+}
+
+.reset {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-dim);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+.reset:active { transform: scale(0.96); }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title serif">Internet<small>calculator</small></div>
+  <button class="theme-toggle" id="themeToggle" aria-label="Перемкнути тему">◐</button>
+</header>
+
+<section>
+  <div class="section-label">Навантаження у пік<button class="clear-btn" id="clearLoad">скинути</button></div>
+  <div id="scenarios"></div>
+</section>
+
+<div class="requirements" id="requirements"></div>
+
+<section>
+  <div class="section-label">Параметри плану<button class="clear-btn" id="clearPlan">скинути</button></div>
+  <div id="plan"></div>
+</section>
+
+<div class="verdict" id="verdict"></div>
+
+<div style="text-align:center; margin-bottom: 24px;">
+  <button class="reset" id="reset">Скинути</button>
+</div>
+
+<footer>v0.1 · Локальне зберігання · Без серверів</footer>
+
+<script>
+// ---------------- Data ----------------
+
+const SCENARIOS = [
+  { id: 'zoom1',        name: 'Відеодзвінок 1-на-1',    meta: 'Zoom / Meet HD',              dl: 3,   ul: 3,   ping: 70,  type: 'count' },
+  { id: 'zoomGroup',    name: 'Груповий відеодзвінок',  meta: 'HD, 4+ учасників',            dl: 4,   ul: 4,   ping: 70,  type: 'count' },
+  { id: 'stream4k',     name: 'Стрімінг 4K',            meta: 'Netflix, YouTube 4K',         dl: 25,  ul: 0,   ping: null, type: 'count' },
+  { id: 'streamHd',     name: 'Стрімінг HD',            meta: 'Netflix, YouTube HD',         dl: 5,   ul: 0,   ping: null, type: 'count' },
+  { id: 'gamingCasual', name: 'Онлайн-гра (RPG/спорт)', meta: 'GTA, FIFA, Minecraft…',      dl: 3,   ul: 1,   ping: 40,  type: 'count' },
+  { id: 'gamingFps',    name: 'Шутер / файтинг',        meta: 'CoD, Apex, Tekken, PS5…',    dl: 5,   ul: 2,   ping: 20,  type: 'count' },
+  { id: 'browsing',     name: 'Серфінг / соцмережі',    meta: 'на людину',                  dl: 2,   ul: 0,   ping: null, type: 'count' },
+  { id: 'camera',       name: 'IP-камера у хмару',      meta: '1080p',                       dl: 0,   ul: 2,   ping: null, type: 'count' },
+  { id: 'backup',       name: 'Хмарний бекап / файли',  meta: 'активне завантаження',        dl: 0,   ul: 30,  ping: null, type: 'toggle' },
+  { id: 'smart',        name: 'Розумний дім',            meta: 'фоновий трафік',              dl: 1,   ul: 1,   ping: null, type: 'toggle' },
+];
+
+const PLAN_FIELDS = [
+  { id: 'dl',     name: 'Download у пік',  hint: 'не з реклами, реальний speedtest увечері', unit: 'Мбіт/с', type: 'number' },
+  { id: 'ul',     name: 'Upload у пік',    hint: 'часто менший за рекламний',                unit: 'Мбіт/с', type: 'number' },
+  { id: 'ping',   name: 'Пінг',            hint: 'до speedtest-сервера',                     unit: 'мс',     type: 'number' },
+  { id: 'bb',     name: 'Bufferbloat',     hint: 'опційно, waveform.com/tools/bufferbloat',  unit: 'мс',     type: 'number' },
+  { id: 'conn',   name: 'Тип з\'єднання',  hint: 'fiber найкращий для стабільності',         type: 'select',
+    options: [
+      { v: '',        t: '— не вказано —' },
+      { v: 'fiber',   t: 'Fiber (FTTH)' },
+      { v: 'cable',   t: 'Кабель' },
+      { v: 'vdsl',    t: 'VDSL (мідь)' },
+      { v: 'mobile',  t: '4G / 5G фікс.' },
+      { v: 'starlink',t: 'Starlink' },
+    ]
+  },
+  { id: 'price',  name: 'Ціна',            hint: 'після завершення промо',                   unit: '€/міс',  type: 'number' },
+];
+
+// ---------------- State ----------------
+
+const STORAGE_KEY = 'internet-calc-v1';
+const THEME_KEY = 'internet-calc-theme';
+
+const defaultState = {
+  scenarios: Object.fromEntries(SCENARIOS.map(s => [s.id, s.type === 'toggle' ? false : 0])),
+  plan: { dl: '', ul: '', ping: '', bb: '', conn: '', price: '' },
+};
+
+let state = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return structuredClone(defaultState);
+    const s = JSON.parse(raw);
+    return {
+      scenarios: { ...defaultState.scenarios, ...(s.scenarios || {}) },
+      plan: { ...defaultState.plan, ...(s.plan || {}) },
+    };
+  } catch (e) {
+    return structuredClone(defaultState);
+  }
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+
+function vibe(ms = 8) {
+  if ('vibrate' in navigator) navigator.vibrate(ms);
+}
+
+// ---------------- Theme ----------------
+
+function applyTheme(t) {
+  if (t === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f5f3ec');
+    document.getElementById('themeToggle').textContent = '◑';
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0a0a0a');
+    document.getElementById('themeToggle').textContent = '◐';
+  }
+}
+
+const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+applyTheme(savedTheme);
+
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const cur = localStorage.getItem(THEME_KEY) || 'dark';
+  const next = cur === 'dark' ? 'light' : 'dark';
+  localStorage.setItem(THEME_KEY, next);
+  applyTheme(next);
+  vibe();
+});
+
+// ---------------- Render: requirements ----------------
+
+function fmt(n) {
+  if (!n) return '—';
+  const v = Math.round(n);
+  return v >= 1000 ? (v / 1000).toFixed(1).replace(/\.0$/, '') + 'к' : String(v);
+}
+
+function renderRequirements() {
+  const root = document.getElementById('requirements');
+  const c = calculate();
+
+  if (!c.hasLoad) {
+    root.innerHTML = `
+      <div class="req-label">Потреба домогосподарства</div>
+      <div class="req-empty">Додайте навантаження вище — тут з'являться вимоги до плану</div>
+    `;
+    return;
+  }
+
+  const pingCard = c.reqPing
+    ? `<div class="req-card">
+         <div class="req-card-val">${c.reqPing}</div>
+         <div class="req-card-unit">мс</div>
+         <div class="req-card-name">Пінг макс.</div>
+       </div>`
+    : `<div class="req-card">
+         <div class="req-card-val" style="font-size:22px;color:var(--text-faint)">—</div>
+         <div class="req-card-unit">мс</div>
+         <div class="req-card-name">Пінг</div>
+       </div>`;
+
+  root.innerHTML = `
+    <div class="req-label">Потреба домогосподарства</div>
+    <div class="req-cards">
+      <div class="req-card">
+        <div class="req-card-val">${fmt(c.reqDl)}</div>
+        <div class="req-card-unit">Мбіт/с</div>
+        <div class="req-card-name">Download</div>
+      </div>
+      <div class="req-card">
+        <div class="req-card-val">${fmt(c.reqUl)}</div>
+        <div class="req-card-unit">Мбіт/с</div>
+        <div class="req-card-name">Upload</div>
+      </div>
+      ${pingCard}
+    </div>
+  `;
+}
+
+// ---------------- Render: scenarios ----------------
+
+function renderScenarios() {
+  const root = document.getElementById('scenarios');
+  root.innerHTML = '';
+
+  SCENARIOS.forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = `
+      <div class="row-info">
+        <div class="row-name">${s.name}</div>
+        <div class="row-meta">${s.meta}</div>
+      </div>
+      <div class="row-control"></div>
+    `;
+    const ctrl = row.querySelector('.row-control');
+
+    if (s.type === 'count') {
+      const counter = document.createElement('div');
+      counter.className = 'counter';
+      const val = state.scenarios[s.id] || 0;
+      counter.innerHTML = `
+        <button class="minus" ${val <= 0 ? 'disabled' : ''}>−</button>
+        <div class="val ${val === 0 ? 'zero' : ''}">${val}</div>
+        <button class="plus">+</button>
+      `;
+      counter.querySelector('.minus').addEventListener('click', () => {
+        if ((state.scenarios[s.id] || 0) > 0) {
+          state.scenarios[s.id] = (state.scenarios[s.id] || 0) - 1;
+          saveState(); renderScenarios(); renderRequirements(); renderVerdict(); vibe();
+        }
+      });
+      counter.querySelector('.plus').addEventListener('click', () => {
+        state.scenarios[s.id] = (state.scenarios[s.id] || 0) + 1;
+        saveState(); renderScenarios(); renderRequirements(); renderVerdict(); vibe();
+      });
+      ctrl.appendChild(counter);
+    } else {
+      const tog = document.createElement('div');
+      tog.className = 'toggle' + (state.scenarios[s.id] ? ' on' : '');
+      tog.addEventListener('click', () => {
+        state.scenarios[s.id] = !state.scenarios[s.id];
+        saveState(); renderScenarios(); renderRequirements(); renderVerdict(); vibe();
+      });
+      ctrl.appendChild(tog);
+    }
+
+    root.appendChild(row);
+  });
+}
+
+// ---------------- Render: plan ----------------
+
+function renderPlan() {
+  const root = document.getElementById('plan');
+  root.innerHTML = '';
+
+  PLAN_FIELDS.forEach(f => {
+    const field = document.createElement('div');
+    field.className = 'field';
+    field.innerHTML = `
+      <div class="field-label">
+        <div class="field-label-name">${f.name}</div>
+        <div class="field-label-hint">${f.hint}</div>
+      </div>
+      <div class="field-control"></div>
+    `;
+    const ctrl = field.querySelector('.field-control');
+
+    if (f.type === 'number') {
+      const wrap = document.createElement('div');
+      wrap.className = 'field-input';
+      wrap.innerHTML = `
+        <input type="number" inputmode="decimal" placeholder="—" value="${state.plan[f.id] ?? ''}">
+        <span class="unit">${f.unit}</span>
+      `;
+      const inp = wrap.querySelector('input');
+      inp.addEventListener('input', () => {
+        state.plan[f.id] = inp.value;
+        saveState(); renderVerdict();
+      });
+      ctrl.appendChild(wrap);
+    } else if (f.type === 'select') {
+      const sel = document.createElement('select');
+      sel.className = 'conn';
+      f.options.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o.v; opt.textContent = o.t;
+        if (state.plan[f.id] === o.v) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      sel.addEventListener('change', () => {
+        state.plan[f.id] = sel.value;
+        saveState(); renderVerdict();
+      });
+      ctrl.appendChild(sel);
+    }
+
+    root.appendChild(field);
+  });
+}
+
+// ---------------- Verdict logic ----------------
+
+function calculate() {
+  let dlSum = 0, ulSum = 0;
+  const pings = [];
+
+  SCENARIOS.forEach(s => {
+    const v = state.scenarios[s.id];
+    let count = 0;
+    if (s.type === 'count') count = v || 0;
+    else count = v ? 1 : 0;
+    if (!count) return;
+
+    dlSum += s.dl * count;
+    ulSum += s.ul * count;
+    if (s.ping !== null) pings.push(s.ping);
+  });
+
+  // Reserve: 30% on download, 50% on upload (upload is usually the bottleneck)
+  const reqDl = dlSum * 1.3;
+  const reqUl = ulSum * 1.5;
+  const reqPing = pings.length ? Math.min(...pings) : null;
+
+  const planDl = parseFloat(state.plan.dl) || 0;
+  const planUl = parseFloat(state.plan.ul) || 0;
+  const planPing = parseFloat(state.plan.ping) || 0;
+  const planBb = parseFloat(state.plan.bb) || 0;
+
+  function judge(have, need) {
+    if (!need) return 'na';
+    if (!have) return 'na';
+    if (have >= need) return 'ok';
+    if (have >= need * 0.8) return 'warn';
+    return 'bad';
+  }
+
+  function judgePing(have, need) {
+    if (!need || !have) return 'na';
+    if (have <= need) return 'ok';
+    if (have <= need * 1.3) return 'warn';
+    return 'bad';
+  }
+
+  const dlState = judge(planDl, reqDl);
+  const ulState = judge(planUl, reqUl);
+  const pingState = judgePing(planPing, reqPing);
+
+  return {
+    reqDl, reqUl, reqPing,
+    planDl, planUl, planPing, planBb,
+    dlState, ulState, pingState,
+    hasLoad: dlSum > 0 || ulSum > 0,
+    conn: state.plan.conn,
+  };
+}
+
+function overallState(c) {
+  const states = [c.dlState, c.ulState, c.pingState].filter(s => s !== 'na');
+  if (!states.length) return 'na';
+  if (states.includes('bad')) return 'bad';
+  if (states.includes('warn')) return 'warn';
+  return 'ok';
+}
+
+function renderVerdict() {
+  const root = document.getElementById('verdict');
+  const c = calculate();
+
+  if (!c.hasLoad) {
+    root.innerHTML = `
+      <div class="verdict-headline serif" style="color: var(--text-dim);">Додайте навантаження</div>
+      <div class="verdict-sub">Виберіть, що відбувається у домі одночасно у вечір буднього дня — щоб порахувати реальну потребу.</div>
+    `;
+    return;
+  }
+
+  const overall = overallState(c);
+  const headline = {
+    ok:   'Плану достатньо',
+    warn: 'Впритул',
+    bad:  'Замало',
+    na:   'Недостатньо даних',
+  }[overall];
+
+  const sub = {
+    ok:   'Запас на пік є. План тримає очікуване навантаження.',
+    warn: 'Працюватиме, але без запасу. У реальному піку можливі підлагування.',
+    bad:  'План не покриває очікуваного піку. Шукайте вузьке місце нижче.',
+    na:   'Введіть параметри плану, щоб побачити вердикт.',
+  }[overall];
+
+  let html = `
+    <div class="verdict-headline serif ${overall}">${headline}</div>
+    <div class="verdict-sub">${sub}</div>
+  `;
+
+  // Metrics
+  html += metricRow('Download', c.planDl, c.reqDl, 'Мбіт/с', c.dlState);
+  html += metricRow('Upload',   c.planUl, c.reqUl, 'Мбіт/с', c.ulState);
+  if (c.reqPing) {
+    html += metricRowPing('Пінг', c.planPing, c.reqPing, c.pingState);
+  }
+
+  // Notes
+  const notes = [];
+
+  // Bufferbloat
+  if (c.planBb > 0) {
+    if (c.planBb < 50) {
+      notes.push(`<p><span class="tag ok">bufferbloat</span>${c.planBb} мс — відмінно. Дзвінки і ігри стабільні навіть під навантаженням.</p>`);
+    } else if (c.planBb < 200) {
+      notes.push(`<p><span class="tag warn">bufferbloat</span>${c.planBb} мс — помірно. Варто увімкнути SQM на роутері (якщо підтримує).</p>`);
+    } else {
+      notes.push(`<p><span class="tag bad">bufferbloat</span>${c.planBb} мс — погано. Під час бекапів дзвінки і ігри страждатимуть. Шукайте роутер з SQM (OpenWrt, Eero, Ubiquiti).</p>`);
+    }
+  }
+
+  // Connection type hints
+  if (c.conn === 'mobile' || c.conn === 'starlink') {
+    notes.push(`<p><span class="tag warn">тип</span>${c.conn === 'mobile' ? '4G/5G' : 'Starlink'} може мати ліміт даних і нестабільний пінг. Перевірте умови контракту.</p>`);
+  } else if (c.conn === 'vdsl') {
+    notes.push(`<p><span class="tag warn">тип</span>VDSL по міді — швидкість падає з відстанню до вузла. Реальна нижча за обіцяну.</p>`);
+  } else if (c.conn === 'fiber') {
+    notes.push(`<p><span class="tag ok">тип</span>Fiber — стабільний пінг і симетричні швидкості. Найнадійніший вибір.</p>`);
+  }
+
+  // Bottleneck hint
+  if (overall === 'bad' || overall === 'warn') {
+    const worst = [
+      { name: 'download', state: c.dlState },
+      { name: 'upload', state: c.ulState },
+      { name: 'пінг', state: c.pingState },
+    ].filter(x => x.state === 'bad' || x.state === 'warn');
+    if (worst.length) {
+      const names = worst.map(w => w.name).join(', ');
+      notes.push(`<p><span class="tag bad">вузьке місце</span>${names}. Часто проблема саме в upload, не в download — провайдери ріжуть upload жорсткіше.</p>`);
+    }
+  }
+
+  // Price per Mbit — окремий блок, не в notes
+  let priceHtml = '';
+  if (c.planDl > 0 && state.plan.price) {
+    const pricePerMbit = (parseFloat(state.plan.price) / c.planDl).toFixed(2);
+    priceHtml = `
+      <div class="price-block">
+        <div class="price-block-label">Ціна за<br>реальний Мбіт/с</div>
+        <div class="price-block-val">
+          <span class="price-block-num">${pricePerMbit}</span>
+          <span class="price-block-unit">€/Мбіт</span>
+        </div>
+      </div>
+    `;
+  }
+
+  if (notes.length) {
+    html += `<div class="notes">${notes.join('')}</div>`;
+  }
+
+  html += priceHtml;
+
+  root.innerHTML = html;
+}
+
+function metricRow(label, have, need, unit, state) {
+  const pct = need > 0 ? Math.min(100, (have / need) * 100) : 0;
+  const color = state === 'ok' ? 'var(--ok)' : state === 'warn' ? 'var(--warn)' : state === 'bad' ? 'var(--bad)' : 'var(--text-faint)';
+  const haveDisplay = have > 0 ? have.toFixed(have >= 100 ? 0 : 1).replace(/\.0$/, '') : '—';
+  const needDisplay = need > 0 ? `треба ${need.toFixed(need >= 100 ? 0 : 1).replace(/\.0$/, '')}` : '';
+  return `
+    <div class="metric">
+      <div class="metric-name">${label}</div>
+      <div class="metric-bar" style="--w: ${pct}%; --c: ${color};"></div>
+      <div class="metric-vals">
+        <span class="num have ${state}">${haveDisplay}</span>
+        <span class="mono need">${needDisplay}</span>
+      </div>
+    </div>
+  `;
+}
+
+function metricRowPing(label, have, need, state) {
+  // For ping: smaller is better. Bar shows "headroom"
+  // If have <= need, bar full. If have > need, bar shrinks.
+  let pct;
+  if (have <= 0) pct = 0;
+  else if (have <= need) pct = 100;
+  else pct = Math.max(0, 100 - ((have - need) / need) * 100);
+
+  const color = state === 'ok' ? 'var(--ok)' : state === 'warn' ? 'var(--warn)' : state === 'bad' ? 'var(--bad)' : 'var(--text-faint)';
+  const haveDisplay = have > 0 ? `${have}` : '—';
+  const needDisplay = need > 0 ? `до ${need}` : '';
+  return `
+    <div class="metric">
+      <div class="metric-name">${label}</div>
+      <div class="metric-bar" style="--w: ${pct}%; --c: ${color};"></div>
+      <div class="metric-vals">
+        <span class="num have ${state}">${haveDisplay} мс</span>
+        <span class="mono need">${needDisplay}</span>
+      </div>
+    </div>
+  `;
+}
+
+// ---------------- Reset ----------------
+
+function armButton(btn, action) {
+  if (btn.dataset.armed === '1') {
+    action();
+    btn.dataset.armed = '0';
+    btn.textContent = btn.dataset.label;
+    btn.classList.remove('armed');
+    clearTimeout(btn._timer);
+  } else {
+    btn.dataset.armed = '1';
+    btn.dataset.label = btn.textContent;
+    btn.textContent = 'Підтвердити?';
+    btn.classList.add('armed');
+    btn._timer = setTimeout(() => {
+      btn.dataset.armed = '0';
+      btn.textContent = btn.dataset.label;
+      btn.classList.remove('armed');
+    }, 3000);
+    vibe(6);
+  }
+}
+
+document.getElementById('clearLoad').addEventListener('click', function () {
+  armButton(this, () => {
+    state.scenarios = Object.fromEntries(SCENARIOS.map(s => [s.id, s.type === 'toggle' ? false : 0]));
+    saveState();
+    renderScenarios(); renderRequirements(); renderVerdict();
+    vibe(15);
+  });
+});
+
+document.getElementById('clearPlan').addEventListener('click', function () {
+  armButton(this, () => {
+    state.plan = { dl: '', ul: '', ping: '', bb: '', conn: '', price: '' };
+    saveState();
+    renderPlan(); renderVerdict();
+    vibe(15);
+  });
+});
+
+document.getElementById('reset').addEventListener('click', function () {
+  armButton(this, () => {
+    state = structuredClone(defaultState);
+    saveState();
+    renderScenarios(); renderRequirements(); renderPlan(); renderVerdict();
+    vibe(20);
+  });
+});
+
+// ---------------- Init ----------------
+
+renderScenarios();
+renderRequirements();
+renderPlan();
+renderVerdict();
+
+</script>
+</body>
+</html>
